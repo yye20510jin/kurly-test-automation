@@ -4,11 +4,13 @@ import os
 from locust.exception import StopUser
 from get_env_path import load_all_env
 from login import login_attempt
-from move_cart import move_cart
+from cartPage import move_cart
 from bulk_update_quantity import bulk_update_cart_quantity
+
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
+
     load_all_env()
     
     session = requests.Session()
@@ -25,7 +27,10 @@ class KurlyUserScenario(HttpUser):
     host = "https://www.kurly.com"
 
     def on_start(self):
-        self.session = getattr(self.environment, "shared_session")
+        session = getattr(self.environment, "shared_session")
+        self.custom_headers = session.headers.copy()
+        cookie_dict = session.cookies.get_dict()
+        self.custom_cookie = "; ".join([f"{k} = {v}" for k,v in cookie_dict.items()])
     
     @task
     def kurly_concurrency_scenario(self):
